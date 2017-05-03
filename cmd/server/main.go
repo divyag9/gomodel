@@ -9,10 +9,7 @@ import (
 	"strings"
 
 	"github.com/bradfitz/gomemcache/memcache"
-	"github.com/divyag9/gomodel/pkg/cache"
-	"github.com/divyag9/gomodel/pkg/database"
 	pb "github.com/divyag9/gomodel/pkg/pb/github.com/divyag9/proto"
-	"github.com/divyag9/gomodel/pkg/service/list"
 	"golang.org/x/net/context"
 
 	"google.golang.org/grpc"
@@ -36,20 +33,23 @@ func (s *Server) ListByImageIds(ctx context.Context, in *pb.ImageIdsRequest) (*p
 
 //ListByOrderNumber retrieves imagedetails for given ordernumber
 func (s *Server) ListByOrderNumber(ctx context.Context, in *pb.OrderNumberRequest) (*pb.ListResponse, error) {
-	cacheInfo := &cache.Info{MemClient: s.MemClient,
-		SecondsToExpiry: s.SecondsToExpiry}
-	databaseInfo := &database.Info{Session: s.Db}
-	listInfo := &list.OrderNumberInfo{OrderNumber: in.OrderNumber,
-		Database: databaseInfo,
-		Cache:    cacheInfo,
+
+	var foo IContent.OrderGetter
+
+	foo = databaseInfo.New(s.Db)
+
+	shouldICache := ctx.Get("cache_my_shit").(bool)
+
+	if cache {
+		foo = databaseCache.New(foo, secondsFromConfig)
 	}
-	imageDetails, err := listInfo.GetImageDetails()
+
+	listResponse := &pb.ListResponse{}
+
+	listResponse.Stuff, err = foo.GetImageDetailsByOrderNum(in.OrderNumberRequest.Orders)
 	if err != nil {
 		return nil, err
 	}
-	listResponse := &pb.ListResponse{}
-	listResponse.ImageDetails = imageDetails
-
 	return listResponse, nil
 }
 
