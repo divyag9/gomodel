@@ -6,7 +6,7 @@ import (
 
 	"github.com/divyag9/gomodel/pkg/cache"
 	"github.com/divyag9/gomodel/pkg/database"
-	"github.com/divyag9/gomodel/pkg/pb"
+	"github.com/divyag9/gomodel/pkg/pb/github.com/divyag9/proto"
 )
 
 //OrderNumberInfo contains information required to retrieve imageDetails by orderNumber

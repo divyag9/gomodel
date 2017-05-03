@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/divyag9/gomodel/pkg/pb"
+	"github.com/divyag9/gomodel/pkg/pb/github.com/divyag9/proto"
 	ora "gopkg.in/rana/ora.v4"
 )
 

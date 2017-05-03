@@ -11,7 +11,7 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/divyag9/gomodel/pkg/cache"
 	"github.com/divyag9/gomodel/pkg/database"
-	pb "github.com/divyag9/gomodel/pkg/pb"
+	pb "github.com/divyag9/gomodel/pkg/pb/github.com/divyag9/proto"
 	"github.com/divyag9/gomodel/pkg/service/list"
 	"golang.org/x/net/context"
 

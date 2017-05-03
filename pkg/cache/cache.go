@@ -2,7 +2,7 @@ package cache
 
 import (
 	"github.com/bradfitz/gomemcache/memcache"
-	"github.com/divyag9/gomodel/pkg/pb"
+	"github.com/divyag9/gomodel/pkg/pb/github.com/divyag9/proto"
 )
 
 // Info holds all the information required for caching
