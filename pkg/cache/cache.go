@@ -11,6 +11,12 @@ type Info struct {
 	SecondsToExpiry int32
 }
 
+// Caller contains methods for caching
+type Caller interface {
+	GetImageDetails(string) ([]*contentservice.ImageDetail, error)
+	SetImageDetails(string, []*contentservice.ImageDetail) error
+}
+
 //GetImageDetails retrieves ImageDetails from cache for a given key
 func (i *Info) GetImageDetails(key string /*may be also send the other contexts*/) ([]*contentservice.ImageDetail, error) {
 	return []*contentservice.ImageDetail{&contentservice.ImageDetail{}}, nil
