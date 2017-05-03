@@ -40,8 +40,9 @@ func (s *Server) ListByOrderNumber(ctx context.Context, in *pb.OrderNumberReques
 		SecondsToExpiry: s.SecondsToExpiry}
 	databaseInfo := &database.Info{Session: s.Db}
 	listInfo := &list.OrderNumberInfo{OrderNumber: in.OrderNumber,
-		DatabaseInfo: databaseInfo,
-		CacheInfo:    cacheInfo}
+		Database: databaseInfo,
+		Cache:    cacheInfo,
+	}
 	imageDetails, err := listInfo.GetImageDetails()
 	if err != nil {
 		return nil, err
