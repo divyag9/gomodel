@@ -11,8 +11,8 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/divyag9/gomodel/pkg/cache"
 	"github.com/divyag9/gomodel/pkg/database"
-	pb "github.com/divyag9/gomodel/pkg/pb/github.com/divyag9/proto"
-	"github.com/divyag9/gomodel/pkg/service/list"
+	"github.com/divyag9/gomodel/pkg/interface"
+	pb "github.com/divyag9/gomodel/pkg/pb"
 	"golang.org/x/net/context"
 
 	"google.golang.org/grpc"
@@ -36,17 +36,25 @@ func (s *Server) ListByImageIds(ctx context.Context, in *pb.ImageIdsRequest) (*p
 
 //ListByOrderNumber retrieves imagedetails for given ordernumber
 func (s *Server) ListByOrderNumber(ctx context.Context, in *pb.OrderNumberRequest) (*pb.ListResponse, error) {
-	cacheInfo := &cache.Info{MemClient: s.MemClient,
-		SecondsToExpiry: s.SecondsToExpiry}
-	databaseInfo := &database.Info{Session: s.Db}
-	listInfo := &list.OrderNumberInfo{OrderNumber: in.OrderNumber,
-		Database: databaseInfo,
-		Cache:    cacheInfo,
+
+	var orderNumberGetter contentserviceinterface.OrderNumberGetter
+	//Create database config struct
+	orderNumberGetter = database.NewConfig(s.Db)
+
+	//Retrieve the cache_enabled value from the context
+	cacheEnabled := ctx.Value("cache_enabled").(bool)
+	// If caching is enabled create cache client
+	if cacheEnabled {
+		orderNumberGetter = cache.NewOrderClient(s.MemClient, s.SecondsToExpiry, orderNumberGetter)
 	}
-	imageDetails, err := listInfo.GetImageDetails()
+
+	//Retrieve the imagedetails for an ordernumber
+	imageDetails, err := orderNumberGetter.GetImageDetailsByOrderNumber(in.OrderNumber)
 	if err != nil {
 		return nil, err
 	}
+
+	//Create the response
 	listResponse := &pb.ListResponse{}
 	listResponse.ImageDetails = imageDetails
 
