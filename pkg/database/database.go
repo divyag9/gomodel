@@ -1,27 +1,28 @@
 package database
 
 import (
-	"github.com/divyag9/gomodel/pkg/pb/github.com/divyag9/proto"
+	"github.com/divyag9/gomodel/pkg/pb"
 	ora "gopkg.in/rana/ora.v4"
 )
 
-//Info contains information required for the database
-type Info struct {
+//Config contains information required for the database operations
+type Config struct {
 	Session *ora.Ses
 }
 
-// Caller contains methods to be performed on database
-type Caller interface {
-	GetImageDetailsByOrderNumber(rderNumber int64) ([]*contentservice.ImageDetail, error)
-	GetImageDetailsByImageIds(imageIds []int64) ([]*contentservice.ImageDetail, error)
+//NewConfig initializes the Config struct and returns it
+func NewConfig(session *ora.Ses) *Config {
+	return &Config{
+		Session: session,
+	}
 }
 
 //GetImageDetailsByOrderNumber retrieves the imageDetails for a given orderNumber
-func (i *Info) GetImageDetailsByOrderNumber(orderNumber int64) ([]*contentservice.ImageDetail, error) {
+func (c *Config) GetImageDetailsByOrderNumber(orderNumber int64) ([]*contentservice.ImageDetail, error) {
 	return []*contentservice.ImageDetail{&contentservice.ImageDetail{}}, nil
 }
 
 //GetImageDetailsByImageIds retrieves the imageDetails for a given set og imageIds
-func (i *Info) GetImageDetailsByImageIds(imageIds []int64) ([]*contentservice.ImageDetail, error) {
+func (c *Config) GetImageDetailsByImageIds(imageIds []int64) ([]*contentservice.ImageDetail, error) {
 	return []*contentservice.ImageDetail{&contentservice.ImageDetail{}}, nil
 }

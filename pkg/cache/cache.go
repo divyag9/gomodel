@@ -2,27 +2,37 @@ package cache
 
 import (
 	"github.com/bradfitz/gomemcache/memcache"
-	"github.com/divyag9/gomodel/pkg/pb/github.com/divyag9/proto"
+	"github.com/divyag9/gomodel/pkg/interface"
+	"github.com/divyag9/gomodel/pkg/pb"
 )
 
-// Info holds all the information required for caching
-type Info struct {
-	MemClient       *memcache.Client
-	SecondsToExpiry int32
+// Config holds all the information required for caching
+type Config struct {
+	Memcache          *memcache.Client
+	SecondsToExpiry   int32
+	OrderNumberGetter contentserviceinterface.OrderNumberGetter
 }
 
-// Caller contains methods for caching
-type Caller interface {
-	GetImageDetails(string) ([]*contentservice.ImageDetail, error)
-	SetImageDetails(string, []*contentservice.ImageDetail) error
+//NewOrderClient initializes the cache client to get imagedetails for ordernumber
+func NewOrderClient(memcache *memcache.Client, secondsToExpiry int32, orderNumberGetter contentserviceinterface.OrderNumberGetter) *Config {
+	return &Config{
+		Memcache:          memcache,
+		SecondsToExpiry:   secondsToExpiry,
+		OrderNumberGetter: orderNumberGetter,
+	}
 }
 
-//GetImageDetails retrieves ImageDetails from cache for a given key
-func (i *Info) GetImageDetails(key string /*may be also send the other contexts*/) ([]*contentservice.ImageDetail, error) {
+//GetImageDetailsByOrderNumber retrieves the imageDetails for a given orderNumber
+func (c *Config) GetImageDetailsByOrderNumber(orderNumber int64) ([]*contentservice.ImageDetail, error) {
 	return []*contentservice.ImageDetail{&contentservice.ImageDetail{}}, nil
 }
 
-//SetImageDetails sets the ImageDetails to cache for a given key
-func (i *Info) SetImageDetails(key string, imageDetails []*contentservice.ImageDetail) error {
+//GetImageDetailsByImageIds retrieves the imageDetails for a given set og imageIds
+func (c *Config) GetImageDetailsByImageIds(imageIds []int64) ([]*contentservice.ImageDetail, error) {
+	return []*contentservice.ImageDetail{&contentservice.ImageDetail{}}, nil
+}
+
+//setImageDetails sets the ImageDetails to cache for a given key
+func setImageDetails(key string, imageDetails []*contentservice.ImageDetail) error {
 	return nil
 }
