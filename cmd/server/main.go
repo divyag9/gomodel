@@ -9,14 +9,10 @@ import (
 	"strings"
 
 	"github.com/bradfitz/gomemcache/memcache"
-<<<<<<< HEAD
-	pb "github.com/divyag9/gomodel/pkg/pb/github.com/divyag9/proto"
-=======
 	"github.com/divyag9/gomodel/pkg/cache"
 	"github.com/divyag9/gomodel/pkg/database"
 	"github.com/divyag9/gomodel/pkg/interface"
 	pb "github.com/divyag9/gomodel/pkg/pb"
->>>>>>> Adding more composition
 	"golang.org/x/net/context"
 
 	"google.golang.org/grpc"
