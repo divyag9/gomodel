@@ -10,16 +10,16 @@ import (
 	"github.com/divyag9/gomodel/pkg/pb"
 )
 
-// Config holds all the information required for caching
-type Config struct {
+// Client holds all the information required for caching
+type Client struct {
 	Memcache          *memcache.Client
 	SecondsToExpiry   int32
 	OrderNumberGetter contentserviceinterface.OrderNumberGetter
 }
 
-//NewOrderClient initializes the cache client to get Imagedetails for ordernumber
-func NewOrderClient(memcache *memcache.Client, secondsToExpiry int32, orderNumberGetter contentserviceinterface.OrderNumberGetter) *Config {
-	return &Config{
+//New initializes the cache client to get Imagedetails for ordernumber
+func New(memcache *memcache.Client, secondsToExpiry int32, orderNumberGetter contentserviceinterface.OrderNumberGetter) *Client {
+	return &Client{
 		Memcache:          memcache,
 		SecondsToExpiry:   secondsToExpiry,
 		OrderNumberGetter: orderNumberGetter,
@@ -27,7 +27,7 @@ func NewOrderClient(memcache *memcache.Client, secondsToExpiry int32, orderNumbe
 }
 
 //GetImageDetailsByOrderNumber retrieves the ImageDetails for a given orderNumber
-func (c *Config) GetImageDetailsByOrderNumber(orderNumber int64) ([]*contentservice.ImageDetail, error) {
+func (c *Client) GetImageDetailsByOrderNumber(orderNumber int64) ([]*contentservice.ImageDetail, error) {
 	//Construct the key for caching
 	key := fmt.Sprintf("OrderNumber:%q", orderNumber)
 
@@ -45,8 +45,6 @@ func (c *Config) GetImageDetailsByOrderNumber(orderNumber int64) ([]*contentserv
 		if err != nil {
 			return nil, err
 		}
-
-		return imageDetails, nil
 	}
 
 	return imageDetails, nil
@@ -73,7 +71,7 @@ func getImageDetails(key string, memcacheClient *memcache.Client) ([]*contentser
 }
 
 //setImageDetails sets the ImageDetails to cache for a given key
-func setImageDetails(key string, imageDetails []*contentservice.ImageDetail, config *Config) error {
+func setImageDetails(key string, imageDetails []*contentservice.ImageDetail, client *Client) error {
 	//Serialize ImageDetails into bytes
 	encBuf := new(bytes.Buffer)
 	err := gob.NewEncoder(encBuf).Encode(imageDetails)
@@ -82,16 +80,10 @@ func setImageDetails(key string, imageDetails []*contentservice.ImageDetail, con
 	}
 
 	//Setting ImageDetail bytes to cache
-	err = config.Memcache.Set(&memcache.Item{Key: key, Value: encBuf.Bytes(), Expiration: config.SecondsToExpiry})
+	err = client.Memcache.Set(&memcache.Item{Key: key, Value: encBuf.Bytes(), Expiration: client.SecondsToExpiry})
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-//GetImageDetailsByImageIds retrieves the ImageDetails for a given set og imageIds
-func (c *Config) GetImageDetailsByImageIds(imageIds []int64) ([]*contentservice.ImageDetail, error) {
-	//To be implemented
-	return []*contentservice.ImageDetail{&contentservice.ImageDetail{}}, nil
 }
