@@ -41,14 +41,14 @@ func (s *Server) ListByOrderNumber(ctx context.Context, in *pb.OrderNumberReques
 	//Create database config struct
 	orderNumberGetter = database.NewConfig(s.Db)
 
-	//Retrieve the cache_enabled value from the context
+	//Retrieve cache_enabled value from the context
 	cacheEnabled := ctx.Value("cache_enabled").(bool)
 	// If caching is enabled create cache client
 	if cacheEnabled {
 		orderNumberGetter = cache.NewOrderClient(s.MemClient, s.SecondsToExpiry, orderNumberGetter)
 	}
 
-	//Retrieve the imagedetails for an ordernumber
+	//Retrieve imagedetails for an ordernumber
 	imageDetails, err := orderNumberGetter.GetImageDetailsByOrderNumber(in.OrderNumber)
 	if err != nil {
 		return nil, err
