@@ -38,14 +38,14 @@ func (s *Server) ListByImageIds(ctx context.Context, in *pb.ImageIdsRequest) (*p
 func (s *Server) ListByOrderNumber(ctx context.Context, in *pb.OrderNumberRequest) (*pb.ListResponse, error) {
 
 	var orderNumberGetter contentserviceinterface.OrderNumberGetter
-	//Create database config struct
-	orderNumberGetter = database.NewConfig(s.Db)
+	//Create database client
+	orderNumberGetter = database.New(s.Db)
 
 	//Retrieve cache_enabled value from the context
 	cacheEnabled := ctx.Value("cache_enabled").(bool)
 	// If caching is enabled create cache client
 	if cacheEnabled {
-		orderNumberGetter = cache.NewOrderClient(s.MemClient, s.SecondsToExpiry, orderNumberGetter)
+		orderNumberGetter = cache.New(s.MemClient, s.SecondsToExpiry, orderNumberGetter)
 	}
 
 	//Retrieve imagedetails for an ordernumber
