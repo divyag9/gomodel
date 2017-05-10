@@ -7,12 +7,51 @@ import (
 	"testing"
 	"time"
 
+	ora "gopkg.in/rana/ora.v4"
+
 	"github.com/bradfitz/gomemcache/memcache"
-	"github.com/divyag9/gomodel/pkg/database"
 	"github.com/divyag9/gomodel/pkg/pb"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 )
+
+//FakeDatabaseClient for testing
+type FakeDatabaseClient struct {
+	Session *ora.Ses
+}
+
+//GetImageDetailsByOrderNumber fake implementation for testing
+func (f *FakeDatabaseClient) GetImageDetailsByOrderNumber(orderNumber int64) ([]*contentservice.ImageDetail, error) {
+	testDate, _ := ptypes.TimestampProto(time.Date(2017, 03, 14, 20, 52, 45, 0, time.UTC))
+
+	return []*contentservice.ImageDetail{{
+		Archived:               "",
+		Category:               "foo",
+		ContractorId:           72494,
+		DateCreated:            testDate,
+		DateModified:           testDate,
+		ImageUTCDate:           nil,
+		ImageTakenDate:         nil,
+		DeptCode:               "01",
+		DescPrefix:             "foo",
+		DescText:               "foo bar",
+		FileSize:               180,
+		ImageId:                3001240405,
+		ImageFileName:          "C:\\Temp\\images600\\016\\555\\76215592-b810-48f0-a9e2-ac681ab0ea38.png",
+		ImageHeight:            100,
+		ImageType:              1,
+		ImageRotated:           false,
+		ImageWidth:             100,
+		OrderNumber:            600016555,
+		ReleaseDate:            testDate,
+		ScanDate:               testDate,
+		ThumbnailSize:          0,
+		WebFileName:            "images/600/016/555/76215592-b810-48f0-a9e2-ac681ab0ea38.png",
+		MimeType:               "image/png",
+		GeneratedImageFilePath: "https://sbimage.sgpdev.com/images/600/016/555/76215592-b810-48f0-a9e2-ac681ab0ea38.png?d794b9a5-02ac-4b86-be81-cbbf0d22abf7",
+		Guid: "",
+	}}, nil
+}
 
 var cases = []struct {
 	cacheClient          *Client
@@ -24,7 +63,7 @@ var cases = []struct {
 		cacheClient: &Client{
 			Memcache:          getMemcacheClient(),
 			SecondsToExpiry:   50,
-			OrderNumberGetter: &database.FakeDatabaseClient{},
+			OrderNumberGetter: &FakeDatabaseClient{},
 		},
 		orderNumber: 600016555,
 		expectedImageDetails: []*contentservice.ImageDetail{{
@@ -74,7 +113,7 @@ func getDate() *timestamp.Timestamp {
 	return testDate
 }
 
-func TestGetImageDetailsByOrderNumber(t *testing.T) {
+func TestGetImageDetails(t *testing.T) {
 	for _, c := range cases {
 		imageDetails, err := c.cacheClient.GetImageDetailsByOrderNumber(c.orderNumber)
 

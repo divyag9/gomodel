@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/bradfitz/gomemcache/memcache"
-	"github.com/divyag9/gomodel/pkg/cache"
-	"github.com/divyag9/gomodel/pkg/database"
 	"github.com/divyag9/gomodel/pkg/interface"
+	"github.com/divyag9/gomodel/pkg/listByOrderNumber/cache"
+	"github.com/divyag9/gomodel/pkg/listByOrderNumber/database"
 	pb "github.com/divyag9/gomodel/pkg/pb"
 	"golang.org/x/net/context"
 
@@ -42,6 +42,7 @@ func (s *Server) ListByOrderNumber(ctx context.Context, in *pb.OrderNumberReques
 
 	//Retrieve cache_enabled value from the context
 	cacheEnabled := ctx.Value("cache_enabled").(bool)
+
 	// If caching is enabled create cache client
 	if cacheEnabled {
 		orderNumberGetter = cache.New(s.MemClient, s.SecondsToExpiry, orderNumberGetter)
@@ -81,7 +82,7 @@ func main() {
 	}
 	grpcServer := grpc.NewServer(opts...)
 
-	dsn := os.Getenv("GO_OCI8_CONNECT_STRING")
+	dsn := os.Getenv("GO_OCI8_LIB_CONNECT_STRING")
 	env, srv, ses, err := ora.NewEnvSrvSes(dsn)
 	if err != nil {
 		fmt.Println(err)
