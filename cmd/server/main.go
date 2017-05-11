@@ -18,6 +18,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/grpclog"
+	"google.golang.org/grpc/metadata"
 	ora "gopkg.in/rana/ora.v4"
 )
 
@@ -40,8 +41,18 @@ func (s *Server) ListByOrderNumber(ctx context.Context, in *pb.OrderNumberReques
 	//Create database client
 	orderNumberGetter = database.New(s.Db)
 
-	//Retrieve cache_enabled value from the context
-	cacheEnabled := ctx.Value("cache_enabled").(bool)
+	//Retrieve cache value from context
+	var cacheEnabled bool
+	headers, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		//Get the cache header value
+		cacheValue := headers["cache"][0]
+		cacheBoolValue, err := strconv.ParseBool(cacheValue)
+		if err != nil {
+			return nil, err
+		}
+		cacheEnabled = cacheBoolValue
+	}
 
 	// If caching is enabled create cache client
 	if cacheEnabled {

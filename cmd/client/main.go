@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/grpclog"
+	"google.golang.org/grpc/metadata"
 )
 
 func main() {
@@ -46,14 +47,15 @@ func main() {
 	defer conn.Close()
 	client := pb.NewContentServiceClient(conn)
 
-	//Create contextKey
-	type key string
-	const contextKey key = "cache_enabled"
+	//Add metadata to context
+	header := metadata.New(map[string]string{"cache": "false"})
+	ctx := context.Background()
+	ctx = metadata.NewOutgoingContext(ctx, header)
 
 	//Sending request
-	response, err := client.ListByOrderNumber(context.WithValue(context.Background(), contextKey, false), &pb.OrderNumberRequest{OrderNumber: 600051597})
+	response, err := client.ListByOrderNumber(ctx, &pb.OrderNumberRequest{OrderNumber: 600051597})
 	if err != nil {
-		log.Fatalf("Error Pinging: %v", err)
+		log.Fatalf("error listing imageDetails by ordernumber: %v", err)
 	}
-	fmt.Println("Response: ", response)
+	fmt.Println("response: ", response)
 }
