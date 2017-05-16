@@ -20,8 +20,8 @@ type FakeDatabaseClient struct {
 	Session *ora.Ses
 }
 
-//GetImageDetailsByOrderNumber fake implementation for testing
-func (f *FakeDatabaseClient) GetImageDetailsByOrderNumber(orderNumber int64) ([]*contentservice.ImageDetail, error) {
+//GetImageDetailsByImageIds fake implementation for testing
+func (f *FakeDatabaseClient) GetImageDetailsByImageIds(imageIds []int64) ([]*contentservice.ImageDetail, error) {
 	testDate, _ := ptypes.TimestampProto(time.Date(2017, 03, 14, 20, 52, 45, 0, time.UTC))
 
 	return []*contentservice.ImageDetail{{
@@ -50,22 +50,48 @@ func (f *FakeDatabaseClient) GetImageDetailsByOrderNumber(orderNumber int64) ([]
 		MimeType:               "image/png",
 		GeneratedImageFilePath: "https://sbimage.sgpdev.com/images/600/016/555/76215592-b810-48f0-a9e2-ac681ab0ea38.png?d794b9a5-02ac-4b86-be81-cbbf0d22abf7",
 		Guid: "",
+	}, {
+		Archived:               "",
+		Category:               "foo",
+		ContractorId:           72494,
+		DateCreated:            getDate(),
+		DateModified:           getDate(),
+		ImageUTCDate:           nil,
+		ImageTakenDate:         nil,
+		DeptCode:               "01",
+		DescPrefix:             "foo",
+		DescText:               "foo bar",
+		FileSize:               180,
+		ImageId:                3001240404,
+		ImageFileName:          "C:\\Temp\\images600\\016\\555\\76215592-b810-48f0-a9e2-ac681ab0ea38.png",
+		ImageHeight:            100,
+		ImageType:              1,
+		ImageRotated:           false,
+		ImageWidth:             100,
+		OrderNumber:            600016555,
+		ReleaseDate:            getDate(),
+		ScanDate:               getDate(),
+		ThumbnailSize:          0,
+		WebFileName:            "images/600/016/555/76215592-b810-48f0-a9e2-ac681ab0ea38.png",
+		MimeType:               "image/png",
+		GeneratedImageFilePath: "https://sbimage.sgpdev.com/images/600/016/555/76215592-b810-48f0-a9e2-ac681ab0ea38.png?d794b9a5-02ac-4b86-be81-cbbf0d22abf7",
+		Guid: "",
 	}}, nil
 }
 
 var cases = []struct {
 	cacheClient          *Client
-	orderNumber          int64
+	imageIds             []int64
 	expectedImageDetails []*contentservice.ImageDetail
 	expectedError        error
 }{
 	{
 		cacheClient: &Client{
-			Memcache:          getMemcacheClient(),
-			SecondsToExpiry:   50,
-			OrderNumberGetter: &FakeDatabaseClient{},
+			Memcache:        getMemcacheClient(),
+			SecondsToExpiry: 20,
+			ImageIdsGetter:  &FakeDatabaseClient{},
 		},
-		orderNumber: 600016555,
+		imageIds: []int64{3001240405, 3001240404},
 		expectedImageDetails: []*contentservice.ImageDetail{{
 			Archived:               "",
 			Category:               "foo",
@@ -79,6 +105,32 @@ var cases = []struct {
 			DescText:               "foo bar",
 			FileSize:               180,
 			ImageId:                3001240405,
+			ImageFileName:          "C:\\Temp\\images600\\016\\555\\76215592-b810-48f0-a9e2-ac681ab0ea38.png",
+			ImageHeight:            100,
+			ImageType:              1,
+			ImageRotated:           false,
+			ImageWidth:             100,
+			OrderNumber:            600016555,
+			ReleaseDate:            getDate(),
+			ScanDate:               getDate(),
+			ThumbnailSize:          0,
+			WebFileName:            "images/600/016/555/76215592-b810-48f0-a9e2-ac681ab0ea38.png",
+			MimeType:               "image/png",
+			GeneratedImageFilePath: "https://sbimage.sgpdev.com/images/600/016/555/76215592-b810-48f0-a9e2-ac681ab0ea38.png?d794b9a5-02ac-4b86-be81-cbbf0d22abf7",
+			Guid: "",
+		}, {
+			Archived:               "",
+			Category:               "foo",
+			ContractorId:           72494,
+			DateCreated:            getDate(),
+			DateModified:           getDate(),
+			ImageUTCDate:           nil,
+			ImageTakenDate:         nil,
+			DeptCode:               "01",
+			DescPrefix:             "foo",
+			DescText:               "foo bar",
+			FileSize:               180,
+			ImageId:                3001240404,
 			ImageFileName:          "C:\\Temp\\images600\\016\\555\\76215592-b810-48f0-a9e2-ac681ab0ea38.png",
 			ImageHeight:            100,
 			ImageType:              1,
@@ -113,9 +165,9 @@ func getDate() *timestamp.Timestamp {
 	return testDate
 }
 
-func TestGetImageDetailsByOrderNumber(t *testing.T) {
+func TestGetImageDetailsByImageIds(t *testing.T) {
 	for _, c := range cases {
-		imageDetails, err := c.cacheClient.GetImageDetailsByOrderNumber(c.orderNumber)
+		imageDetails, err := c.cacheClient.GetImageDetailsByImageIds(c.imageIds)
 
 		if !reflect.DeepEqual(err, c.expectedError) {
 			t.Errorf("Expected err to be %q but it was %q", c.expectedError, err)

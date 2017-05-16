@@ -10,8 +10,10 @@ import (
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/divyag9/gomodel/pkg/interface"
-	"github.com/divyag9/gomodel/pkg/listByOrderNumber/cache"
-	"github.com/divyag9/gomodel/pkg/listByOrderNumber/database"
+	imageIdsCache "github.com/divyag9/gomodel/pkg/listByImageIds/cache"
+	imageIdsDatabase "github.com/divyag9/gomodel/pkg/listByImageIds/database"
+	orderNumberCache "github.com/divyag9/gomodel/pkg/listByOrderNumber/cache"
+	orderNumberDatabase "github.com/divyag9/gomodel/pkg/listByOrderNumber/database"
 	pb "github.com/divyag9/gomodel/pkg/pb"
 	"golang.org/x/net/context"
 
@@ -31,15 +33,9 @@ type Server struct {
 
 //ListByImageIds retrieves imagedetails for given imageids
 func (s *Server) ListByImageIds(ctx context.Context, in *pb.ImageIdsRequest) (*pb.ListResponse, error) {
-	//TO be implemented
-	return nil, nil
-}
-
-//ListByOrderNumber retrieves imagedetails for given ordernumber
-func (s *Server) ListByOrderNumber(ctx context.Context, in *pb.OrderNumberRequest) (*pb.ListResponse, error) {
-	var orderNumberGetter contentserviceinterface.OrderNumberGetter
+	var imageIdsGetter contentserviceinterface.ImageIdsGetter
 	//Create database client
-	orderNumberGetter = database.New(s.Db)
+	imageIdsGetter = imageIdsDatabase.New(s.Db)
 
 	//Retrieve cache value from context
 	var cacheEnabled bool
@@ -56,7 +52,44 @@ func (s *Server) ListByOrderNumber(ctx context.Context, in *pb.OrderNumberReques
 
 	// If caching is enabled create cache client
 	if cacheEnabled {
-		orderNumberGetter = cache.New(s.MemClient, s.SecondsToExpiry, orderNumberGetter)
+		imageIdsGetter = imageIdsCache.New(s.MemClient, s.SecondsToExpiry, imageIdsGetter)
+	}
+
+	//Retrieve imagedetails for an ordernumber
+	imageDetails, err := imageIdsGetter.GetImageDetailsByImageIds(in.ImageIds)
+	if err != nil {
+		return nil, err
+	}
+
+	//Create the response
+	listResponse := &pb.ListResponse{}
+	listResponse.ImageDetails = imageDetails
+
+	return listResponse, nil
+}
+
+//ListByOrderNumber retrieves imagedetails for given ordernumber
+func (s *Server) ListByOrderNumber(ctx context.Context, in *pb.OrderNumberRequest) (*pb.ListResponse, error) {
+	var orderNumberGetter contentserviceinterface.OrderNumberGetter
+	//Create database client
+	orderNumberGetter = orderNumberDatabase.New(s.Db)
+
+	//Retrieve cache value from context
+	var cacheEnabled bool
+	headers, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		//Get the cache header value
+		cacheValue := headers["cache"][0]
+		cacheBoolValue, err := strconv.ParseBool(cacheValue)
+		if err != nil {
+			return nil, err
+		}
+		cacheEnabled = cacheBoolValue
+	}
+
+	// If caching is enabled create cache client
+	if cacheEnabled {
+		orderNumberGetter = orderNumberCache.New(s.MemClient, s.SecondsToExpiry, orderNumberGetter)
 	}
 
 	//Retrieve imagedetails for an ordernumber
