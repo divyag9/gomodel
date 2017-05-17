@@ -18,13 +18,12 @@ import (
 	"golang.org/x/net/context"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
 	ora "gopkg.in/rana/ora.v4"
 )
 
-// Server contains information required by server
+// Server contains information required by contentservice server
 type Server struct {
 	Db              *ora.Ses
 	MemClient       *memcache.Client
@@ -61,7 +60,7 @@ func (s *Server) ListByImageIds(ctx context.Context, in *pb.ImageIdsRequest) (*p
 		return nil, err
 	}
 
-	//Create the response
+	//Create response
 	listResponse := &pb.ListResponse{}
 	listResponse.ImageDetails = imageDetails
 
@@ -98,7 +97,7 @@ func (s *Server) ListByOrderNumber(ctx context.Context, in *pb.OrderNumberReques
 		return nil, err
 	}
 
-	//Create the response
+	//Create response
 	listResponse := &pb.ListResponse{}
 	listResponse.ImageDetails = imageDetails
 
@@ -106,48 +105,47 @@ func (s *Server) ListByOrderNumber(ctx context.Context, in *pb.OrderNumberReques
 }
 
 func main() {
-	tls := flag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
-	certFile := flag.String("cert_file", "testdata/server1.pem", "The TLS cert file")
-	keyFile := flag.String("key_file", "testdata/server1.key", "The TLS key file")
+	//Command line parameters
 	port := flag.Int("port", 10000, "The server port")
-
 	flag.Parse()
+
+	//Create grpc server
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		grpclog.Fatalf("Failed to listen: %v", err)
 	}
 	var opts []grpc.ServerOption
-	if *tls {
-		creds, err := credentials.NewServerTLSFromFile(*certFile, *keyFile)
-		if err != nil {
-			grpclog.Fatalf("Failed to generate credentials %v", err)
-		}
-		opts = []grpc.ServerOption{grpc.Creds(creds)}
-	}
 	grpcServer := grpc.NewServer(opts...)
 
+	//Create database session
 	dsn := os.Getenv("GO_OCI8_LIB_CONNECT_STRING")
-	env, srv, ses, err := ora.NewEnvSrvSes(dsn)
+	env, srv, session, err := ora.NewEnvSrvSes(dsn)
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer env.Close()
 	defer srv.Close()
-	defer ses.Close()
+	defer session.Close()
 
-	mc := getMemcacheClient()
+	//Get new memcache client
+	memClient := getMemcacheClient()
+
+	//Get cache expiry time from environment variable
 	expiryTime, _ := strconv.Atoi(os.Getenv("EXPIRY_TIME"))
 
-	server := &Server{}
-	server.Db = ses
-	server.MemClient = mc
-	server.SecondsToExpiry = int32(expiryTime)
+	//Create server struct
+	server := &Server{Db: session,
+		MemClient:       memClient,
+		SecondsToExpiry: int32(expiryTime),
+	}
+
 	pb.RegisterContentServiceServer(grpcServer, server)
 	if err := grpcServer.Serve(listen); err != nil {
 		fmt.Println("Failed to serve: ", err)
 	}
 }
 
+//getMemcacheClient returns a new memcache client
 func getMemcacheClient() *memcache.Client {
 	servers := os.Getenv("MEMCACHE_SERVERS")
 	memcacheServers := strings.Split(servers, ",")

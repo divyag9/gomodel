@@ -31,7 +31,7 @@ func (c *Client) GetImageDetailsByImageIds(imageIds []int64) ([]*contentservice.
 	//Construct keys for caching
 	keys := getKeys(imageIds)
 
-	//Get ImageDetail's from cache in bulk
+	//Get ImageDetails from cache in bulk
 	imageIdsCache, imageDetails, err := getImageDetailsMulti(keys, c.Memcache)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (c *Client) GetImageDetailsByImageIds(imageIds []int64) ([]*contentservice.
 			return nil, err
 		}
 
-		//Set cache for each of the imageIds retrieved from database
+		//Set imagedetails to cache for each of the imageIds retrieved from database
 		for _, v := range imageDetailsDatabase {
 			key := fmt.Sprintf("Id:%q", v.ImageId)
 			err = setImageDetails(key, v, c)
@@ -74,15 +74,15 @@ func getKeys(imageIds []int64) []string {
 }
 
 //getImageIdsToRetieveFromDatabase returns array of imageids whose imagedetails could not be retrieved from cache.
-//returnes array of imageIds is used to retieve from database
+//imagedetails have to be retrived from database
 func getImageIdsToRetieveFromDatabase(imageIds []int64, imageIdsCache []int64) []int64 {
-	m := make(map[int64]int)
+	idsMap := make(map[int64]int)
 	for _, imageID := range imageIdsCache {
-		m[imageID] = 1
+		idsMap[imageID] = 1
 	}
 	var imageIdsDatabase []int64
 	for _, imageID := range imageIds {
-		if m[imageID] == 0 {
+		if idsMap[imageID] == 0 {
 			imageIdsDatabase = append(imageIdsDatabase, imageID)
 		}
 	}
@@ -91,12 +91,14 @@ func getImageIdsToRetieveFromDatabase(imageIds []int64, imageIdsCache []int64) [
 }
 
 //getImageDetailsMulti retrieves the ImageDetails from cache in bulk
+//along with array of imageids
 func getImageDetailsMulti(keys []string, memcacheClient *memcache.Client) ([]int64, []*contentservice.ImageDetail, error) {
 	//Get imageDetails for given keys from cache
 	keysToImageDetailMap, err := memcacheClient.GetMulti(keys)
 	if err != nil {
 		return nil, nil, err
 	}
+
 	var imageIdsCache []int64
 	imageDetails := []*contentservice.ImageDetail{}
 	for _, v := range keysToImageDetailMap {
@@ -110,6 +112,7 @@ func getImageDetailsMulti(keys []string, memcacheClient *memcache.Client) ([]int
 		}
 
 		imageDetails = append(imageDetails, imageDetail)
+		//Array of imageIds whose imageDetails were retrieved from cache
 		imageIdsCache = append(imageIdsCache, imageDetail.ImageId)
 	}
 
