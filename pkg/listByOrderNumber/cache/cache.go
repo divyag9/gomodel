@@ -70,7 +70,7 @@ func getImageDetails(key string, memcacheClient *memcache.Client) ([]*contentser
 	return imageDetails, nil
 }
 
-//setImageDetails sets the ImageDetails to cache for a given key
+//setImageDetails writes the ImageDetails to cache for a given key
 func setImageDetails(key string, imageDetails []*contentservice.ImageDetail, client *Client) error {
 	//Serialize ImageDetails into bytes
 	encBuf := new(bytes.Buffer)

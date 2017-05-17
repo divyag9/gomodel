@@ -137,7 +137,7 @@ func toTimestamp(columnValue interface{}) (*google_protobuf.Timestamp, error) {
 	return result, nil
 }
 
-//Convert resultset value of columns that are of type OCINum
+//Convert resultset value of columns that are of type Number(OCINum)
 func toInt64FromOCINum(columnValue interface{}) (int64, error) {
 	var result int64
 	if columnValue != nil {
@@ -151,7 +151,7 @@ func toInt64FromOCINum(columnValue interface{}) (int64, error) {
 	return result, nil
 }
 
-//Convert resultset value of columns that are of type OCINum
+//Convert resultset value of columns that are of type Number(OCINum)
 func toInt32FromOCINum(columnValue interface{}) (int32, error) {
 	var result int32
 	if columnValue != nil {
@@ -165,7 +165,7 @@ func toInt32FromOCINum(columnValue interface{}) (int32, error) {
 	return result, nil
 }
 
-//Convert resultset value of columns that are of type Number
+//Convert resultset value of columns that are of type Number(int64)
 func toInt32FromNumber(columnValue interface{}) int32 {
 	var result int32
 	if columnValue != nil {

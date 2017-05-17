@@ -34,7 +34,7 @@ func (c *Client) GetImageDetailsByOrderNumber(orderNumber int64) ([]*contentserv
 		return nil, err
 	}
 
-	//Create the imageDetails array
+	//Creating imageDetails from resultSet
 	imageDetails := []*contentservice.ImageDetail{}
 	if resultSet.IsOpen() {
 		for resultSet.Next() {

@@ -121,7 +121,7 @@ func getImageDetailsMulti(keys []string, memcacheClient *memcache.Client) ([]int
 	return imageIdsCache, imageDetails, nil
 }
 
-//setImageDetails sets the ImageDetails to cache for a given key
+//setImageDetails writes the ImageDetails to cache for a given key
 func setImageDetails(key string, imageDetail *contentservice.ImageDetail, client *Client) error {
 	//Serialize ImageDetails into bytes
 	encBuf := new(bytes.Buffer)
